@@ -23,4 +23,7 @@ router.put('/:id/payment', orderController.updatePaymentStatus.bind(orderControl
 // PUT /api/orders/:id/cancel - Cancel order
 router.put('/:id/cancel', orderController.cancelOrder.bind(orderController));
 
+// DELETE /api/orders/:orderId - Delete an order
+router.delete('/:orderId', orderController.deleteOrder.bind(orderController));
+
 export default router;

@@ -499,4 +499,51 @@ export class OrderController {
       }
     }
   }
+
+  // Delete order
+  async deleteOrder(req: Request, res: Response): Promise<Response> {
+    try {
+      const { orderId } = req.params;
+
+      const order = await this.orderRepository.findOne({
+        where: { id: orderId },
+        relations: ['items'], // Include items to ensure they are handled if needed, though direct deletion is separate
+      });
+
+      if (!order) {
+        return res.status(404).json({ error: 'Order not found.' });
+      }
+
+      if (order.status !== OrderStatus.CANCELLED) {
+        return res.status(400).json({
+          error: 'Only cancelled orders can be deleted.',
+          currentStatus: order.status,
+        });
+      }
+
+      // Use a transaction to ensure atomicity
+      await AppDataSource.transaction(async transactionalEntityManager => {
+        // Delete all associated OrderItem entities
+        // It's important to delete related OrderItems first to avoid foreign key constraints
+        await transactionalEntityManager.delete(OrderItem, { order: { id: orderId } });
+
+        // Delete the Order entity itself
+        await transactionalEntityManager.delete(Order, orderId);
+      });
+
+      return res.status(200).json({ message: 'Order deleted successfully.' });
+
+    } catch (error: any) {
+      console.error('Error deleting order:', error);
+      // Provide more context in development for easier debugging
+      const errorMessage = process.env.NODE_ENV === 'development'
+        ? error.message
+        : 'An unexpected error occurred while deleting the order.';
+
+      return res.status(500).json({
+        error: 'Failed to delete order.',
+        details: errorMessage,
+      });
+    }
+  }
 }
