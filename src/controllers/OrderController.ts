@@ -419,16 +419,8 @@ export class OrderController {
         return res.status(404).json({ error: 'Order not found.' });
       }
 
-      if (order.status === OrderStatus.DELIVERED) {
-        return res.status(400).json({ 
-          error: 'Cannot cancel a delivered order.' 
-        });
-      }
-
-      if (order.status === OrderStatus.CANCELLED) {
-        return res.status(400).json({ 
-          error: 'Order is already cancelled.' 
-        });
+      if (order.status !== OrderStatus.PENDING && order.status !== OrderStatus.CONFIRMED) {
+        return res.status(400).json({ error: 'Order cannot be cancelled at this stage' });
       }
 
       // Restore stock quantities before updating the order status
