@@ -31,6 +31,12 @@ export default defineNuxtConfig({
           config.plugins = [vuetify({ autoImport: true })]
         }
       })
-    }
+    },
+    '@pinia/nuxt', // Add Pinia module
   ],
+  runtimeConfig: {
+    public: {
+      apiBaseUrl: process.env.NUXT_PUBLIC_API_BASE_URL || 'https://gas.bxmedia.pro/api',
+    }
+  }
 })
